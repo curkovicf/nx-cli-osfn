@@ -1,0 +1,28 @@
+{
+  "name": "nx-cli-osfn",
+  "version": "1.0.0",
+  "description": "Collection of classes &amp; functions which collects information about Nx Workspace",
+  "main": "lib/index.js",
+  "types": "lib",
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "npx ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/curkovicf/nx-cli-osfn.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/curkovicf/nx-cli-osfn/issues"
+  },
+  "homepage": "https://github.com/curkovicf/nx-cli-osfn#readme",
+  "devDependencies": {
+    "typescript": "^4.5.2",
+    "@types/node": "^16.11.9",
+    "ts-node": "^10.4.0",
+    "tslib": "^2.3.1"
+  }
+}
