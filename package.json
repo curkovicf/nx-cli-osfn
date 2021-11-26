@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -p .",
     "start": "npx ts-node src/index.ts",
-    "pretty": "npx prettier --write ./src"
+    "pretty": "npx prettier --write ./src",
+    "pg": "npx ts-node src/playground/playground.ts"
   },
   "repository": {
     "type": "git",
