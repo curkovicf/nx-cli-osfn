@@ -1,0 +1,1 @@
+{"version":3,"file":"generate-artifact.dto.d.ts","sourceRoot":"","sources":["../../../src/projects/dtos/generate-artifact.dto.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,WAAW,EAAC,MAAM,8BAA8B,CAAC;AAEzD,MAAM,WAAW,mBAAmB;IAClC,WAAW,EAAE,WAAW,CAAC;IACzB,aAAa,EAAE,MAAM,CAAC;IACtB,mBAAmB,EAAE,MAAM,CAAC;CAC7B"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"angular-module.model.d.ts","sourceRoot":"","sources":["../../../src/projects/models/angular-module.model.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,gBAAgB,EAAC,MAAM,2BAA2B,CAAC;AAE3D,MAAM,WAAW,aAAa;IAC5B,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,MAAM,CAAC;IACjB,IAAI,EAAE,MAAM,CAAC;IACb,UAAU,EAAE,gBAAgB,EAAE,CAAC;CAChC"}

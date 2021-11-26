@@ -1,0 +1,1 @@
+{"version":3,"file":"generators.dto.d.ts","sourceRoot":"","sources":["../../../src/workspaces/dtos/generators.dto.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,WAAW,EAAC,MAAM,0CAA0C,CAAC;AAErE,MAAM,WAAW,aAAa;IAC5B,aAAa,EAAE,MAAM,CAAC;IACtB,UAAU,EAAE,WAAW,EAAE,CAAC;CAC3B"}
