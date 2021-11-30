@@ -6,7 +6,6 @@ import fsExtra from 'fs-extra';
 import {IProjectsRepository} from './projects-repository.interface';
 import {getNxGeneratorFieldValue} from '../models/nx-generator.model';
 import {Project} from '../models/project.model';
-import {AngularComponent} from '../models/angular-component.model';
 import {
   FileType,
   fileTypes,
@@ -15,7 +14,6 @@ import {
   ProjectFolder,
 } from '../models/folder-tree.model';
 import {ProjectType} from '../models/project-type.enum';
-import {AngularModule} from '../models/angular-module.model';
 
 //  Dtos
 import {TagDto} from '../dtos/tag.dto';
@@ -27,16 +25,58 @@ import {OsUtils} from '../../shared/util/os-utils.namespace';
 import {NodeUtils} from '../../shared/util/node-utils.namespace';
 import {StringUtils} from '../../shared/util/string-utils.namespace';
 
+export enum ConfigFile {
+  workspaceJson,
+  nxJson,
+  angularJson,
+}
+
 export class ProjectsRepositoryImpl implements IProjectsRepository {
+  private nxJsonFile: any | undefined;
+  private workspaceJson: any | undefined;
+  private angularJson: any | undefined;
+  private workspacePath: string | undefined;
+
+  async openConfigFiles(workspacePath: string): Promise<void> {
+    this.workspacePath = workspacePath;
+
+    try {
+      this.nxJsonFile = await fsExtra.readJSON(
+        `${workspacePath}${OsUtils.getPlatformPathSeparator()}nx.json`,
+      );
+    } catch (err) {
+      console.warn('No nx.json file.');
+    }
+
+    try {
+      this.workspaceJson = await fsExtra.readJSON(
+        `${workspacePath}${OsUtils.getPlatformPathSeparator()}workspace.json`,
+      );
+    } catch (err) {
+      console.warn('No workspace.json file.');
+    }
+
+    try {
+      this.angularJson = await fsExtra.readJSON(
+        `${workspacePath}${OsUtils.getPlatformPathSeparator()}angular.json`,
+      );
+    } catch (err) {
+      console.warn('No angular.json file.');
+    }
+  }
+
+  clean(): void {
+    this.nxJsonFile = undefined;
+    this.workspaceJson = undefined;
+    this.workspacePath = undefined;
+    this.angularJson = undefined;
+  }
+
   /**
    *
    * @param currPath
-   * @param workspacePath
    */
-  async getAllProjectsV2(
-    currPath: string,
-    workspacePath: string,
-  ): Promise<Project[]> {
+  async getAllProjectsV2(currPath: string): Promise<Project[]> {
     let projects: Project[] = [];
     let matchingNameCounter = 0;
 
@@ -53,7 +93,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       ) {
         projects = [
           ...projects,
-          ...(await this.getAllProjectsV2(absolutePath, workspacePath)),
+          ...(await this.getAllProjectsV2(absolutePath)),
         ];
       } else if (this.isProject(file, files)) {
         matchingNameCounter++;
@@ -63,12 +103,13 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
         projects.push({
           name: this.getProjectName(currPath),
           path: currPath,
-          relativePath: this.trimToRelativePath(currPath, workspacePath),
-          type: this.getProjectType(currPath, workspacePath),
-          nameInNxJson: '',
-          angularModules: await this.getAngularModules(currPath),
+          relativePath: this.trimToRelativePath(currPath),
+          type: this.getProjectType(currPath),
+          nameInConfig: this.findProjectNameInConfigFiles(currPath),
           folderTree: await this.getProjectFolderTree(currPath),
-          tags: [],
+          tags: await this.getTagsFromProjectJson(
+            `${currPath}${OsUtils.getPlatformPathSeparator()}project.json`,
+          ),
         });
 
         matchingNameCounter = 0;
@@ -107,105 +148,6 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     }
   }
 
-  /**
-   *
-   * @param projectPath
-   */
-  async getAngularModules(projectPath: string): Promise<AngularModule[]> {
-    const angularModules: AngularModule[] = [];
-    const files = await fsExtra.readdir(projectPath); //  Open lib
-
-    //  Recursively look for all angular modules
-    for await (const file of files) {
-      const absolutePath = path.join(projectPath, file);
-      const isFileDirectory = (await fsExtra.stat(absolutePath)).isDirectory();
-
-      if (isFileDirectory) {
-        angularModules.push(...(await this.getAngularModules(absolutePath)));
-      } else if (file.includes('.module.')) {
-        //  Angular module is found
-        const angularModuleTxt = await fsExtra.readFile(absolutePath, 'utf8');
-
-        angularModules.push({
-          className: this.getClassName(angularModuleTxt),
-          fileName: file,
-          path: absolutePath,
-          components: this.findDeclaredComponents(angularModuleTxt),
-        });
-      }
-    }
-
-    return angularModules;
-  }
-
-  /**
-   *
-   * @param txt
-   */
-  getClassName(txt: string): string {
-    const lines = txt.split(/\r?\n/);
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      if (line.includes('export class')) {
-        const split = line.split(' ');
-        return split[2];
-      }
-    }
-
-    return 'ERROR';
-  }
-
-  /**
-   *
-   * @param angularModuleTxt
-   */
-  findDeclaredComponents(angularModuleTxt: string): AngularComponent[] {
-    const angularComponents: AngularComponent[] = [];
-    const angularModuleSplit = angularModuleTxt.split(/\r?\n/); //  This regex supports Windows & Unix systems
-
-    let isDeclarations = false;
-    angularModuleSplit.forEach(line => {
-      if (line.includes('declarations')) {
-        //  Declarations start
-        isDeclarations = true;
-      }
-
-      if (isDeclarations) {
-        //  Grab components in array
-        const trimmed = line
-          .replace('declarations', '')
-          .replace(':', '')
-          .replace('[', '')
-          .replace(']', '')
-          .replace(',', '')
-          .trim();
-
-        //  Handle edge cases like declarations: [Comp,Comp], declarations: [Comp, /nComp] etc.
-        const arrSplit = trimmed.split(/[ ,]+/);
-
-        if (arrSplit.length > 0) {
-          arrSplit.forEach(angularComponentTxt => {
-            if (angularComponentTxt) {
-              angularComponents.push({
-                className: angularComponentTxt,
-                path: '',
-                fileName: '',
-              });
-            }
-          });
-        }
-      }
-
-      if (line.includes(']') && isDeclarations) {
-        //  Declarations end
-        isDeclarations = false;
-      }
-    });
-
-    return angularComponents;
-  }
 
   /**
    *
@@ -306,11 +248,11 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
 
       projects.forEach(project => {
         const trimmedPath = OsUtils.parsePath(
-          this.trimToRelativePath(project.path, workspacePath).substring(1),
+          this.trimToRelativePath(project.path).substring(1),
         );
 
         if (currentProjectPath === trimmedPath) {
-          project.nameInNxJson = key;
+          project.nameInConfig = key;
         }
       });
     });
@@ -318,35 +260,102 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
 
   /**
    *
+   * @param projectPath
+   * @param projects
+   */
+  getProjectNameFromConfigFile(
+    projects: any,
+    projectPath: string,
+  ): string {
+    let name: string = '';
+
+    Object.entries(projects).forEach(([key, value]) => {
+      let currentProjectPath: string = '';
+
+      currentProjectPath = (value as {root: any})?.root ?
+        OsUtils.parsePath((value as {root: any}).root) :
+        OsUtils.parsePath(value as string);
+
+      const trimmedPath = OsUtils.parsePath(
+        this.trimToRelativePath(projectPath).substring(1),
+      );
+
+      if (currentProjectPath === trimmedPath) {
+        name = key;
+      }
+    });
+
+    return name;
+  }
+
+  private findProjectNameInConfigFiles(projectPath: string): string {
+    let name = '';
+
+    if (this.angularJson) {
+      name = this.getProjectNameFromConfigFile(
+        this.angularJson.projects,
+        projectPath,
+      );
+
+      if (name) {
+        return name;
+      }
+    }
+
+    if (this.workspaceJson) {
+      name = this.getProjectNameFromConfigFile(
+        this.workspaceJson.projects,
+        projectPath,
+      );
+    }
+
+    return name;
+  }
+
+  /**
+   *
    * @param workspacePath
    * @param projects
    */
-  async getTagsOfAllProjectsWithinNxJsonFile(
+  async getTagsFromNxJson(
     workspacePath: string,
     projects: Project[],
   ): Promise<void> {
     const pathToNxJson = `${workspacePath}${OsUtils.getPlatformPathSeparator()}nx.json`;
     const nxJson = await fsExtra.readJSON(pathToNxJson);
 
-    //  FIXME: Tags are breaking
-    // Object.entries(nxJson.projects).forEach(([key, value]) => {
-    //   projects.forEach((project) => {
-    //     if (project.nameInNxJson === key) {
-    //       project.tags.push(...(value as ObjWithTagsField).tags);
-    //     }
-    //   });
-    // });
+    Object.entries(nxJson.projects).forEach(([key, value]) => {
+      projects.forEach(project => {
+        if (project.nameInConfig === key) {
+          project.tags.push(...(value as {tags: any}).tags);
+        }
+      });
+    });
+  }
+
+  /**
+   *
+   * @param projectsJsonPath
+   */
+  async getTagsFromProjectJson(projectsJsonPath: string): Promise<string[]> {
+    const tags: string[] = [];
+
+    await fsExtra
+      .readJSON(projectsJsonPath)
+      .then(result => tags.push(...result.tags))
+      .catch(() => null);
+
+    return tags;
   }
 
   /**
    *
    * @param pwd
-   * @param rootPath
    */
-  getProjectType(pwd: string, rootPath: string): ProjectType | undefined {
+  getProjectType(pwd: string): ProjectType | undefined {
     const libraryTypes = Object.values(ProjectType);
-    const keywords = this.trimToRelativePath(pwd, rootPath)
-      .split(OsUtils.getPlatformPathSeparator())
+    const keywords = this.trimToRelativePath(pwd)
+      .split('/')
       .filter(item => item !== '' && item !== '/')
       .reverse();
 
@@ -436,10 +445,13 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
   /**
    *
    * @param pwd
-   * @param rootPath
    */
-  trimToRelativePath(pwd: string, rootPath: string): string {
-    return pwd.replace(rootPath, '');
+  trimToRelativePath(pwd: string): string {
+    if (!this.workspacePath) {
+      throw new Error('Workspace path is not defined.');
+    }
+
+    return OsUtils.parsePath(pwd).replace(this.workspacePath, '');
   }
 
   /**
