@@ -100,16 +100,22 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       }
 
       if (matchingNameCounter > 1) {
+        const name = this.getProjectName(currPath);
+        const path = currPath;
+        const relativePath = this.trimToRelativePath(currPath);
+        const type = this.getProjectType(currPath);
+        const nameInConfig = this.findProjectNameInConfigFiles(currPath);
+        const folderTree = await this.getProjectFolderTree(currPath);
+        const tags = await this.getTags(nameInConfig, currPath);
+
         projects.push({
-          name: this.getProjectName(currPath),
-          path: currPath,
-          relativePath: this.trimToRelativePath(currPath),
-          type: this.getProjectType(currPath),
-          nameInConfig: this.findProjectNameInConfigFiles(currPath),
-          folderTree: await this.getProjectFolderTree(currPath),
-          tags: await this.getTagsFromProjectJson(
-            `${currPath}${OsUtils.getPlatformPathSeparator()}project.json`,
-          ),
+          name,
+          path,
+          relativePath,
+          type,
+          nameInConfig,
+          folderTree,
+          tags,
         });
 
         matchingNameCounter = 0;
@@ -147,7 +153,6 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       await fsExtra.rmdir(workspacePath);
     }
   }
-
 
   /**
    *
@@ -263,18 +268,15 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
    * @param projectPath
    * @param projects
    */
-  getProjectNameFromConfigFile(
-    projects: any,
-    projectPath: string,
-  ): string {
+  getProjectNameFromConfigFile(projects: any, projectPath: string): string {
     let name: string = '';
 
     Object.entries(projects).forEach(([key, value]) => {
       let currentProjectPath: string = '';
 
-      currentProjectPath = (value as {root: any})?.root ?
-        OsUtils.parsePath((value as {root: any}).root) :
-        OsUtils.parsePath(value as string);
+      currentProjectPath = (value as {root: any})?.root
+        ? OsUtils.parsePath((value as {root: any}).root)
+        : OsUtils.parsePath(value as string);
 
       const trimmedPath = OsUtils.parsePath(
         this.trimToRelativePath(projectPath).substring(1),
@@ -314,42 +316,6 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
 
   /**
    *
-   * @param workspacePath
-   * @param projects
-   */
-  async getTagsFromNxJson(
-    workspacePath: string,
-    projects: Project[],
-  ): Promise<void> {
-    const pathToNxJson = `${workspacePath}${OsUtils.getPlatformPathSeparator()}nx.json`;
-    const nxJson = await fsExtra.readJSON(pathToNxJson);
-
-    Object.entries(nxJson.projects).forEach(([key, value]) => {
-      projects.forEach(project => {
-        if (project.nameInConfig === key) {
-          project.tags.push(...(value as {tags: any}).tags);
-        }
-      });
-    });
-  }
-
-  /**
-   *
-   * @param projectsJsonPath
-   */
-  async getTagsFromProjectJson(projectsJsonPath: string): Promise<string[]> {
-    const tags: string[] = [];
-
-    await fsExtra
-      .readJSON(projectsJsonPath)
-      .then(result => tags.push(...result.tags))
-      .catch(() => null);
-
-    return tags;
-  }
-
-  /**
-   *
    * @param pwd
    */
   getProjectType(pwd: string): ProjectType | undefined {
@@ -369,6 +335,57 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     }
 
     return undefined;
+  }
+
+  async getTags(projectName: string, currPath: string): Promise<string[]> {
+    const tags: string[] = [
+      ...await this.getTagsFromProjectJson(
+        `${currPath}${OsUtils.getPlatformPathSeparator()}project.json`,
+      ),
+      ...this.getTagsFromConfigFile(this.workspaceJson, projectName),
+      ...this.getTagsFromConfigFile(this.angularJson, projectName),
+      ...this.getTagsFromConfigFile(this.nxJsonFile, projectName),
+    ];
+
+    return [...new Set(tags)];
+  }
+
+  /**
+   *
+   * @param configFile
+   * @param projectName
+   */
+  getTagsFromConfigFile(configFile: any, projectName: string): string[] {
+    if (!configFile?.projects) {
+      return [];
+    }
+
+    const tags: string[] = [];
+
+    Object.entries(configFile.projects).forEach(([key, value]) => {
+      const tagsArr = (value as {tags: undefined | string[]})?.tags;
+
+      if (projectName === key && tagsArr && tagsArr.length > 0) {
+        tags.push(...tagsArr);
+      }
+    });
+
+    return tags;
+  }
+
+  /**
+   *
+   * @param projectsJsonPath
+   */
+  async getTagsFromProjectJson(projectsJsonPath: string): Promise<string[]> {
+    const tags: string[] = [];
+
+    await fsExtra
+      .readJSON(projectsJsonPath)
+      .then(result => tags.push(...result.tags))
+      .catch(() => null);
+
+    return tags;
   }
 
   /**

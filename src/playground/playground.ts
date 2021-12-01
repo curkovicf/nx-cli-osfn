@@ -18,12 +18,11 @@ const logFile = 'playground-logs.json';
   const ngSpotifyWorkspace: string = workspaces['ng-spotify-workspace'];
   const nxCliWorkspace: string = workspaces['nx-cli-workspace'];
 
-
   // ng
-  // await projectsRepo.openConfigFiles(ngWorkspace);
-  // const ngProjects = await projectsRepo.getAllProjectsV2(ngWorkspace);
-  // projectsRepo.clean();
-  // await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngProjects);
+  await projectsRepo.openConfigFiles(ngWorkspace);
+  const ngProjects = await projectsRepo.getAllProjectsV2(ngWorkspace);
+  projectsRepo.clean();
+  await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngProjects);
 
   // react
   // await projectsRepo.openConfigFiles(reactWorkspace);
@@ -48,5 +47,4 @@ const logFile = 'playground-logs.json';
   // const ngCliProjects = await projectsRepo.getAllProjectsV2(nxCliWorkspace);
   // projectsRepo.clean();
   // await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngCliProjects);
-
 })();
