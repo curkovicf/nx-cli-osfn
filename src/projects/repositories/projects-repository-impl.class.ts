@@ -25,12 +25,6 @@ import {OsUtils} from '../../shared/util/os-utils.namespace';
 import {NodeUtils} from '../../shared/util/node-utils.namespace';
 import {StringUtils} from '../../shared/util/string-utils.namespace';
 
-export enum ConfigFile {
-  workspaceJson,
-  nxJson,
-  angularJson,
-}
-
 export class ProjectsRepositoryImpl implements IProjectsRepository {
   private nxJsonFile: any | undefined;
   private workspaceJson: any | undefined;
@@ -339,9 +333,9 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
 
   async getTags(projectName: string, currPath: string): Promise<string[]> {
     const tags: string[] = [
-      ...await this.getTagsFromProjectJson(
+      ...(await this.getTagsFromProjectJson(
         `${currPath}${OsUtils.getPlatformPathSeparator()}project.json`,
-      ),
+      )),
       ...this.getTagsFromConfigFile(this.workspaceJson, projectName),
       ...this.getTagsFromConfigFile(this.angularJson, projectName),
       ...this.getTagsFromConfigFile(this.nxJsonFile, projectName),
@@ -417,6 +411,82 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     return isSuccess;
   }
 
+  async addTagV2(dto: TagDto): Promise<void> {
+    const isProjectJsonSuccess = await this.attemptToAddTagToProjectJson(dto);
+    const isNxJsonSuccess = await this.attemptAddTagToConfigFiles(
+      dto,
+      this.nxJsonFile,
+    );
+    const isAngularJsonSuccess = await this.attemptAddTagToConfigFiles(
+      dto,
+      this.angularJson,
+    );
+    const isWorkspaceJsonSuccess = await this.attemptAddTagToConfigFiles(
+      dto,
+      this.workspaceJson,
+    );
+
+    console.log('Is project json success: ', isProjectJsonSuccess);
+  }
+
+  private async attemptToAddTagToProjectJson(dto: TagDto): Promise<boolean> {
+    const {tags, projectPath} = dto;
+
+    if (!this.workspacePath) {
+      throw new Error('Please set workspace path.');
+    }
+
+    const filename = 'project.json';
+    const projectJsonPath = OsUtils.parsePath(
+      `${
+        this.workspacePath
+      }${OsUtils.getPlatformPathSeparator()}${projectPath}${OsUtils.getPlatformPathSeparator()}${filename}`,
+    )
+      .replace('//', '/')
+      .replace('\\\\', '\\');
+
+    const projectJson = await fsExtra
+      .readJSON(projectJsonPath)
+      .catch(err => console.log('There is no project.json'));
+
+    if (!projectJson || !projectJson?.tags) {
+      return false;
+    }
+
+    projectJson.tags = [
+      ...new Set(
+        [...projectJson.tags, ...tags]
+          .filter(el => Boolean(el))
+          .map(el => el.trim()),
+      ),
+    ];
+
+    await fsExtra.writeJSON(projectJsonPath, projectJson);
+
+    return true;
+  }
+
+  private async attemptAddTagToConfigFiles(
+    dto: TagDto,
+    configFile: any,
+  ): Promise<void> {
+    const {tags, selectedProjectName} = dto;
+
+    if (!configFile?.[selectedProjectName]?.tags) {
+      return;
+    }
+
+    configFile.tags.push(
+      ...tags.filter(el => Boolean(el)).map(el => el.trim()),
+    );
+
+    if (!this.workspacePath) {
+      throw new Error('Open the config file first');
+    }
+
+    await fsExtra.writeJSON(this.workspacePath, configFile);
+  }
+
   /**
    *
    * @param dto
@@ -427,23 +497,16 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     const pathToNxJson = `${workspacePath}${OsUtils.getPlatformPathSeparator()}nx.json`;
     const nxJson = await fsExtra.readJSON(pathToNxJson);
 
-    const newTags = [
-      ...tags
-        .split(',')
-        .filter(el => Boolean(el))
-        .map(el => el.trim()),
-    ];
-
     Object.entries(nxJson.projects).forEach(([key, value]) => {
       if (key === selectedProjectName) {
         const projectObj = value as {tags: string[]};
-        projectObj.tags.push(...newTags);
+        projectObj.tags.push(...tags);
       }
     });
 
     await fsExtra.writeJSON(pathToNxJson, nxJson);
 
-    return newTags;
+    return tags;
   }
 
   /**
