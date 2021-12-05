@@ -1,5 +1,6 @@
 export interface TagDto {
-  tags: string;
+  tags: string[];
   workspacePath: string;
+  projectPath: string;
   selectedProjectName: string;
 }

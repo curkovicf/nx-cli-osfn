@@ -30,6 +30,10 @@ export namespace OsUtils {
   }
 
   export function parsePath(path: string): string {
+    if (!path) {
+      throw new Error(`${path} - is not a string`);
+    }
+
     return path.replace(/\\/g, '/');
   }
 }

@@ -1,3 +1,4 @@
 /node_modules/
 /.idea/
 /src/playground/playground-config.json
+/src/playground/playground-logs.json

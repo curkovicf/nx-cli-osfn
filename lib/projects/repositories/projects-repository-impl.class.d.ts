@@ -1,40 +1,28 @@
 import { IProjectsRepository } from './projects-repository.interface';
 import { Project } from '../models/project.model';
-import { AngularComponent } from '../models/angular-component.model';
 import { ProjectFolder } from '../models/folder-tree.model';
 import { ProjectType } from '../models/project-type.enum';
-import { AngularModule } from '../models/angular-module.model';
 import { TagDto } from '../dtos/tag.dto';
 import { RemoveTagDto } from '../dtos/remove-tag.dto';
 import { GenerateArtifactDto } from '../dtos/generate-artifact.dto';
 import { NodeUtils } from '../../shared/util/node-utils.namespace';
 export declare class ProjectsRepositoryImpl implements IProjectsRepository {
+    private nxJsonFile;
+    private workspaceJson;
+    private angularJson;
+    private workspacePath;
+    openConfigFiles(workspacePath: string): Promise<void>;
+    clean(): void;
     /**
      *
      * @param currPath
-     * @param workspacePath
      */
-    getAllProjectsV2(currPath: string, workspacePath: string): Promise<Project[]>;
+    getAllProjectsV2(currPath: string): Promise<Project[]>;
     /**
      *
      * @param workspacePath
      */
     cleanEmptyDirWinFunction(workspacePath: string): Promise<void>;
-    /**
-     *
-     * @param projectPath
-     */
-    getAngularModules(projectPath: string): Promise<AngularModule[]>;
-    /**
-     *
-     * @param txt
-     */
-    getClassName(txt: string): string;
-    /**
-     *
-     * @param angularModuleTxt
-     */
-    findDeclaredComponents(angularModuleTxt: string): AngularComponent[];
     /**
      *
      * @param pwd
@@ -54,21 +42,36 @@ export declare class ProjectsRepositoryImpl implements IProjectsRepository {
     getProjectsNames(workspacePath: string, file: string, projects: Project[]): Promise<void>;
     /**
      *
-     * @param workspacePath
+     * @param projectPath
      * @param projects
      */
-    getTagsOfAllProjectsWithinNxJsonFile(workspacePath: string, projects: Project[]): Promise<void>;
+    getProjectNameFromConfigFile(projects: any, projectPath: string): string;
+    private findProjectNameInConfigFiles;
     /**
      *
      * @param pwd
-     * @param rootPath
      */
-    getProjectType(pwd: string, rootPath: string): ProjectType | undefined;
+    getProjectType(pwd: string): ProjectType | undefined;
+    getTags(projectName: string, currPath: string): Promise<string[]>;
+    /**
+     *
+     * @param configFile
+     * @param projectName
+     */
+    getTagsFromConfigFile(configFile: any, projectName: string): string[];
+    /**
+     *
+     * @param projectsJsonPath
+     */
+    getTagsFromProjectJson(projectsJsonPath: string): Promise<string[]>;
     /**
      *
      * @param dto
      */
     removeTag(dto: RemoveTagDto): Promise<boolean>;
+    addTagV2(dto: TagDto): Promise<void>;
+    private attemptToAddTagToProjectJson;
+    private attemptAddTagToConfigFiles;
     /**
      *
      * @param dto
@@ -83,9 +86,8 @@ export declare class ProjectsRepositoryImpl implements IProjectsRepository {
     /**
      *
      * @param pwd
-     * @param rootPath
      */
-    trimToRelativePath(pwd: string, rootPath: string): string;
+    trimToRelativePath(pwd: string): string;
     /**
      *
      * @param dto

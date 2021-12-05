@@ -8,9 +8,7 @@ import {
 
 export class WorkspacesRepositoryImpl {
   async isPathNxWorkspace(pwd: string): Promise<boolean> {
-    return await fsExtra.pathExists(
-      `${pwd}${OsUtils.getPlatformPathSeparator()}nx.json`,
-    );
+    return await fsExtra.pathExists(`${pwd}${OsUtils.getPlatformPathSeparator()}nx.json`);
   }
 
   async getWorkspaceName(pwd: string): Promise<any> {
@@ -35,9 +33,7 @@ export class WorkspacesRepositoryImpl {
    *
    * @param workspacePath
    */
-  async getAvailableNxGenerators(
-    workspacePath: string,
-  ): Promise<NxGenerator[]> {
+  async getAvailableNxGenerators(workspacePath: string): Promise<NxGenerator[]> {
     const installedGenerators: NxGenerator[] = [];
 
     const filePath = `${workspacePath}${OsUtils.getPlatformPathSeparator()}package.json`;
