@@ -1,1 +1,1 @@
-{"version":3,"file":"tag.dto.d.ts","sourceRoot":"","sources":["../../../src/projects/dtos/tag.dto.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,MAAM;IACrB,IAAI,EAAE,MAAM,CAAC;IACb,aAAa,EAAE,MAAM,CAAC;IACtB,mBAAmB,EAAE,MAAM,CAAC;CAC7B"}
+{"version":3,"file":"tag.dto.d.ts","sourceRoot":"","sources":["../../../src/projects/dtos/tag.dto.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,MAAM;IACrB,IAAI,EAAE,MAAM,EAAE,CAAC;IACf,aAAa,EAAE,MAAM,CAAC;IACtB,WAAW,EAAE,MAAM,CAAC;IACpB,mBAAmB,EAAE,MAAM,CAAC;CAC7B"}
