@@ -18,11 +18,7 @@ export namespace StringUtils {
     }
 
     //  Check if last char is not a letter
-    if (
-      str
-        .charAt(str.length - 1)
-        .match(/[~`!@#$%^&*()+={}\[\];:\'\"<>.,\/\\\?-_]/g)
-    ) {
+    if (str.charAt(str.length - 1).match(/[~`!@#$%^&*()+={}\[\];:\'\"<>.,\/\\\?-_]/g)) {
       parsedString = parsedString.slice(0, -1);
     }
 

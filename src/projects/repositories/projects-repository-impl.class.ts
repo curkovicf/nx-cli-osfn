@@ -80,15 +80,8 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       const absolutePath = path.join(currPath, file);
       const isFileDirectory = (await fsExtra.stat(absolutePath)).isDirectory();
 
-      if (
-        isFileDirectory &&
-        !file.includes('node_modules') &&
-        !file.includes('dist')
-      ) {
-        projects = [
-          ...projects,
-          ...(await this.getAllProjectsV2(absolutePath)),
-        ];
+      if (isFileDirectory && !file.includes('node_modules') && !file.includes('dist')) {
+        projects = [...projects, ...(await this.getAllProjectsV2(absolutePath))];
       } else if (this.isProject(file, files)) {
         matchingNameCounter++;
       }
@@ -240,9 +233,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       if (file === 'workspace.json') {
         currentProjectPath = OsUtils.parsePath(value as string);
       } else {
-        currentProjectPath = OsUtils.parsePath(
-          (value as {root: any}).root ?? '',
-        );
+        currentProjectPath = OsUtils.parsePath((value as {root: any}).root ?? '');
       }
 
       projects.forEach(project => {
@@ -288,10 +279,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     let name = '';
 
     if (this.angularJson) {
-      name = this.getProjectNameFromConfigFile(
-        this.angularJson.projects,
-        projectPath,
-      );
+      name = this.getProjectNameFromConfigFile(this.angularJson.projects, projectPath);
 
       if (name) {
         return name;
@@ -299,10 +287,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
     }
 
     if (this.workspaceJson) {
-      name = this.getProjectNameFromConfigFile(
-        this.workspaceJson.projects,
-        projectPath,
-      );
+      name = this.getProjectNameFromConfigFile(this.workspaceJson.projects, projectPath);
     }
 
     return name;
@@ -404,29 +389,16 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       }
     });
 
-    await fsExtra
-      .writeJSON(pathToNxJson, nxJson)
-      .catch(() => (isSuccess = false));
+    await fsExtra.writeJSON(pathToNxJson, nxJson).catch(() => (isSuccess = false));
 
     return isSuccess;
   }
 
   async addTagV2(dto: TagDto): Promise<void> {
-    const isProjectJsonSuccess = await this.attemptToAddTagToProjectJson(dto);
-    const isNxJsonSuccess = await this.attemptAddTagToConfigFiles(
-      dto,
-      this.nxJsonFile,
-    );
-    const isAngularJsonSuccess = await this.attemptAddTagToConfigFiles(
-      dto,
-      this.angularJson,
-    );
-    const isWorkspaceJsonSuccess = await this.attemptAddTagToConfigFiles(
-      dto,
-      this.workspaceJson,
-    );
-
-    console.log('Is project json success: ', isProjectJsonSuccess);
+    await this.attemptToAddTagToProjectJson(dto);
+    await this.attemptAddTagToConfigFiles(dto, this.nxJsonFile, 'nx.json');
+    await this.attemptAddTagToConfigFiles(dto, this.angularJson, 'angular.json');
+    await this.attemptAddTagToConfigFiles(dto, this.workspaceJson, 'workspace.json');
   }
 
   private async attemptToAddTagToProjectJson(dto: TagDto): Promise<boolean> {
@@ -455,9 +427,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
 
     projectJson.tags = [
       ...new Set(
-        [...projectJson.tags, ...tags]
-          .filter(el => Boolean(el))
-          .map(el => el.trim()),
+        [...projectJson.tags, ...tags].filter(el => Boolean(el)).map(el => el.trim()),
       ),
     ];
 
@@ -469,22 +439,31 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
   private async attemptAddTagToConfigFiles(
     dto: TagDto,
     configFile: any,
+    configFileName: string,
   ): Promise<void> {
     const {tags, selectedProjectName} = dto;
-
-    if (!configFile?.[selectedProjectName]?.tags) {
-      return;
-    }
-
-    configFile.tags.push(
-      ...tags.filter(el => Boolean(el)).map(el => el.trim()),
-    );
 
     if (!this.workspacePath) {
       throw new Error('Open the config file first');
     }
 
-    await fsExtra.writeJSON(this.workspacePath, configFile);
+    if (!configFile?.projects?.[selectedProjectName]?.tags) {
+      return;
+    }
+
+    configFile.projects[selectedProjectName].tags = [
+      ...new Set(
+        [...configFile.projects[selectedProjectName].tags, ...tags]
+          .filter(el => Boolean(el))
+          .map(el => el.trim()),
+      ),
+    ];
+
+    const parsedPath = OsUtils.parsePath(
+      `${this.workspacePath}${OsUtils.getPlatformPathSeparator()}${configFileName}`,
+    );
+
+    await fsExtra.writeJSON(parsedPath, configFile);
   }
 
   /**
@@ -551,18 +530,16 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       OsUtils.parsePath(directory ?? ''),
     );
     const cmd = OsUtils.parsePath(
-      `${nxGenerator.cmd} ${
-        dir ? dir + '/' : ''
-      }${StringUtils.removeSpecialCharacters(name ?? '')}`,
+      `${nxGenerator.cmd} ${dir ? dir + '/' : ''}${StringUtils.removeSpecialCharacters(
+        name ?? '',
+      )}`,
     );
     const args: string[] = [];
 
     const {textInputs, checkboxes, dropDowns} = nxGenerator.form;
 
     textInputs.forEach(textInput =>
-      textInput.input &&
-      textInput.title !== 'directory' &&
-      textInput.title !== 'name'
+      textInput.input && textInput.title !== 'directory' && textInput.title !== 'name'
         ? args.push(`--${textInput.title} ${textInput.input}`)
         : null,
     );
@@ -579,12 +556,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
         : null,
     );
 
-    const result = await NodeUtils.executeCommand(
-      cmd,
-      args,
-      workspacePath,
-      'CREATE',
-    );
+    const result = await NodeUtils.executeCommand(cmd, args, workspacePath, 'CREATE');
 
     return {
       isSuccess: true,

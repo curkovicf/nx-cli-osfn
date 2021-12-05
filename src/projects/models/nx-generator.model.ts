@@ -10,15 +10,11 @@ export interface NxGeneratorForm {
   textInputs: ITextInput[];
 }
 
-export function getNxGeneratorDir(
-  nxGenerator: NxGenerator,
-): string | undefined {
+export function getNxGeneratorDir(nxGenerator: NxGenerator): string | undefined {
   return nxGenerator.form.textInputs.find(o => o.title === 'directory')?.input;
 }
 
-export function getNxGeneratorName(
-  nxGenerator: NxGenerator,
-): string | undefined {
+export function getNxGeneratorName(nxGenerator: NxGenerator): string | undefined {
   return nxGenerator.form.textInputs.find(o => o.title === 'directory')?.input;
 }
 
@@ -69,9 +65,7 @@ export enum SupportedNxPackages {
 
 export const supportedNxPackagesAsList = Object.values(SupportedNxPackages);
 
-export function getNxGenerator(
-  supportedNxGenerator: SupportedNxPackages,
-): NxGenerator[] {
+export function getNxGenerator(supportedNxGenerator: SupportedNxPackages): NxGenerator[] {
   switch (supportedNxGenerator) {
     case SupportedNxPackages.angular:
       return angularNxGenerators;
@@ -191,13 +185,10 @@ export const angularNxGenerators: NxGenerator[] = [
         },
         {
           title: 'port',
-          placeholder:
-            'The port at which the remote application should be served',
+          placeholder: 'The port at which the remote application should be served',
         },
       ],
-      checkboxes: [
-        {title: 'routing', placeholder: 'Generate a routing module'},
-      ],
+      checkboxes: [{title: 'routing', placeholder: 'Generate a routing module'}],
       dropDowns: [
         {
           title: 'style',
@@ -261,8 +252,7 @@ export const angularNxGenerators: NxGenerator[] = [
         },
         {
           title: 'displayBlock',
-          placeholder:
-            'Specifies if the style will contain `:host { display: block; }`.',
+          placeholder: 'Specifies if the style will contain `:host { display: block; }`.',
         },
         {
           title: 'skipImport',
@@ -285,15 +275,13 @@ export const angularNxGenerators: NxGenerator[] = [
         },
         {
           title: 'changeDetection',
-          placeholder:
-            'The change detection strategy to use in the new component.',
+          placeholder: 'The change detection strategy to use in the new component.',
           items: ['Default', 'OnPush'],
           selectedItem: 'Default',
         },
         {
           title: 'viewEncapsulation',
-          placeholder:
-            'The view encapsulation strategy to use in the new component.',
+          placeholder: 'The view encapsulation strategy to use in the new component.',
           items: ['Emulated', 'ShadowDom', 'None'],
           selectedItem: 'ShadowDom',
         },
@@ -323,8 +311,7 @@ export const angularNxGenerators: NxGenerator[] = [
       checkboxes: [
         {
           title: 'flat',
-          placeholder:
-            'Create service at the source root rather than its own directory',
+          placeholder: 'Create service at the source root rather than its own directory',
         },
         {
           title: 'skipTests',
@@ -362,8 +349,7 @@ export const angularNxGenerators: NxGenerator[] = [
       checkboxes: [
         {
           title: 'flat',
-          placeholder:
-            'Create pipe at the source root rather than its own directory',
+          placeholder: 'Create pipe at the source root rather than its own directory',
         },
         {
           title: 'skipTests',
@@ -561,8 +547,7 @@ export const angularNxGenerators: NxGenerator[] = [
       checkboxes: [
         {
           title: 'skipTests',
-          placeholder:
-            'Do not create "spec.ts" test files for the new app-shell.',
+          placeholder: 'Do not create "spec.ts" test files for the new app-shell.',
         },
       ],
       dropDowns: [
@@ -614,8 +599,7 @@ export const angularNxGenerators: NxGenerator[] = [
         },
         {
           title: 'minimal',
-          placeholder:
-            'Only register the root state management setup or feature state.',
+          placeholder: 'Only register the root state management setup or feature state.',
         },
         {
           title: 'root',
@@ -629,8 +613,7 @@ export const angularNxGenerators: NxGenerator[] = [
         },
         {
           title: 'skipPackageJson',
-          placeholder:
-            'Do not update the `package.json` with NgRx dependencies.',
+          placeholder: 'Do not update the `package.json` with NgRx dependencies.',
         },
         {
           title: 'useDataPersistence',
@@ -690,15 +673,13 @@ export const reactNxGenerators: NxGenerator[] = [
         },
         {
           title: 'port',
-          placeholder:
-            'The port at which the remote application should be served',
+          placeholder: 'The port at which the remote application should be served',
         },
       ],
       checkboxes: [
         {
           title: 'js',
-          placeholder:
-            'Generate JavaScript files rather than TypeScript files.',
+          placeholder: 'Generate JavaScript files rather than TypeScript files.',
         },
         {
           title: 'globalCss',
@@ -765,8 +746,7 @@ export const reactNxGenerators: NxGenerator[] = [
         },
         {
           title: 'importPath',
-          placeholder:
-            'The library name used to import it, like @myorg/my-awesome-lib',
+          placeholder: 'The library name used to import it, like @myorg/my-awesome-lib',
         },
         {
           title: 'appProject',
@@ -784,8 +764,7 @@ export const reactNxGenerators: NxGenerator[] = [
         },
         {
           title: 'skipTsConfig',
-          placeholder:
-            'Do not update tsconfig.json for development experience.',
+          placeholder: 'Do not update tsconfig.json for development experience.',
         },
         {
           title: 'standaloneConfig',
@@ -794,8 +773,7 @@ export const reactNxGenerators: NxGenerator[] = [
         },
         {
           title: 'js',
-          placeholder:
-            'Generate JavaScript files rather than TypeScript files.',
+          placeholder: 'Generate JavaScript files rather than TypeScript files.',
         },
         {
           title: 'globalCss',
@@ -871,8 +849,7 @@ export const reactNxGenerators: NxGenerator[] = [
       checkboxes: [
         {
           title: 'js',
-          placeholder:
-            'Generate JavaScript files rather than TypeScript files.',
+          placeholder: 'Generate JavaScript files rather than TypeScript files.',
         },
         {
           title: 'globalCss',
@@ -947,8 +924,7 @@ export const reactNxGenerators: NxGenerator[] = [
       checkboxes: [
         {
           title: 'js',
-          placeholder:
-            'Generate JavaScript files rather than TypeScript files.',
+          placeholder: 'Generate JavaScript files rather than TypeScript files.',
         },
       ],
       dropDowns: [

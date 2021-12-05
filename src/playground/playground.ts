@@ -39,9 +39,7 @@ class WorkspacesPaths {
 async function getProjects(workspacesPaths: WorkspacesPaths): Promise<void> {
   // ng
   await projectsRepo.openConfigFiles(workspacesPaths.ngWorkspace);
-  const ngProjects = await projectsRepo.getAllProjectsV2(
-    workspacesPaths.ngWorkspace,
-  );
+  const ngProjects = await projectsRepo.getAllProjectsV2(workspacesPaths.ngWorkspace);
   projectsRepo.clean();
   await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngProjects);
 
@@ -71,33 +69,65 @@ async function getProjects(workspacesPaths: WorkspacesPaths): Promise<void> {
 }
 
 async function addTags(workspacesPaths: WorkspacesPaths): Promise<void> {
-  //  Prepare dto
   //  ng dto
-  const dto: TagDto = {
-    tags: ['scope:test-tag-feat'],
+  const ngDto: TagDto = {
+    tags: ['scope:test-tag-feat-angular'],
     workspacePath: workspacesPaths.ngWorkspace,
     selectedProjectName: 'test-lib',
-    projectPath: '/libs/test-lib',
+    projectPath: 'libs/test-lib',
   };
 
   //  react dto
   const reactDto: TagDto = {
-    tags: ['scope:test-tag-feat'],
-    workspacePath: workspacesPaths.ngWorkspace,
+    tags: ['scope:test-tag-feat-react'],
+    workspacePath: workspacesPaths.reactWorkspace,
     selectedProjectName: 'test-lib',
     projectPath: 'libs/react-lib',
   };
 
-  //  react dto
-  const ngNest: TagDto = {
-    tags: ['scope:test-tag-feat'],
-    workspacePath: workspacesPaths.ngWorkspace,
-    selectedProjectName: 'test-lib',
-    projectPath: 'libs/react-lib',
+  //  ngNest dto
+  const ngNestDto: TagDto = {
+    tags: ['scope:test-tag-feat-ng-nest'],
+    workspacePath: workspacesPaths.ngNestWorkspace,
+    selectedProjectName: 'api-interfaces',
+    projectPath: 'libs/api-interfaces',
   };
 
-  //  Add tag
-  await projectsRepo.openConfigFiles(workspacesPaths.reactWorkspace);
-  await projectsRepo.addTagV2(reactDto);
+  // ngSpotify dto
+  const ngSpotifyDto: TagDto = {
+    tags: ['scope:test-tag-feat-spotify'],
+    workspacePath: workspacesPaths.ngSpotifyWorkspace,
+    selectedProjectName: 'web-visualizer-ui',
+    projectPath: 'libs/web/visualizer/ui',
+  };
+
+  // nxCli dto
+  const nxCliDto: TagDto = {
+    tags: ['scope:test-tag-feat-nx-cli'],
+    workspacePath: workspacesPaths.nxCliWorkspace,
+    selectedProjectName: 'client-workspaces-ui-chips-bar',
+    projectPath: 'libs/client/workspaces/ui/chips-bar',
+  };
+
+  // works
+  // await projectsRepo.openConfigFiles(workspacesPaths.ngWorkspace);
+  // await projectsRepo.addTagV2(ngDto);
+
+  // works
+  // await projectsRepo.openConfigFiles(workspacesPaths.reactWorkspace);
+  // await projectsRepo.addTagV2(reactDto);
+
+  // works
+  // await projectsRepo.openConfigFiles(workspacesPaths.ngNestWorkspace);
+  // await projectsRepo.addTagV2(ngNestDto);
+
+  // works
+  // await projectsRepo.openConfigFiles(workspacesPaths.ngSpotifyWorkspace);
+  // await projectsRepo.addTagV2(ngSpotifyDto);
+
+  // works
+  // await projectsRepo.openConfigFiles(workspacesPaths.nxCliWorkspace);
+  // await projectsRepo.addTagV2(nxCliDto);
+
   projectsRepo.clean();
 }
