@@ -30,10 +30,10 @@ class WorkspacesPaths {
   const workspacesPaths = new WorkspacesPaths(workspaces);
 
   //  Test get projects feat
-  // await getProjects(workspacesPaths);
+  await getProjects(workspacesPaths);
 
   // Test setting tags feat
-  await addTags(workspacesPaths);
+  // await addTags(workspacesPaths);
 })();
 
 async function getProjects(workspacesPaths: WorkspacesPaths): Promise<void> {
@@ -59,13 +59,15 @@ async function getProjects(workspacesPaths: WorkspacesPaths): Promise<void> {
   // await projectsRepo.openConfigFiles(workspacesPaths.ngSpotifyWorkspace);
   // const ngSpotifyProjects = await projectsRepo.getAllProjectsV2(workspacesPaths.ngSpotifyWorkspace);
   // projectsRepo.clean();
+  // console.log(ngSpotifyProjects)
   // await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngSpotifyProjects);
 
   // nxCli
   // await projectsRepo.openConfigFiles(workspacesPaths.nxCliWorkspace);
-  // const ngCliProjects = await projectsRepo.getAllProjectsV2(workspacesPaths.nxCliWorkspace);
+  // const nxCliProjects = await projectsRepo.getAllProjectsV2(workspacesPaths.nxCliWorkspace);
   // projectsRepo.clean();
-  // await fsExtra.writeJSON(`${__dirname}/${logFile}`, ngCliProjects);
+  // console.log(nxCliProjects)
+  // await fsExtra.writeJSON(`${__dirname}/${logFile}`, nxCliProjects);
 }
 
 async function addTags(workspacesPaths: WorkspacesPaths): Promise<void> {
