@@ -255,9 +255,7 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
    */
   getProjectNameFromConfigFile(projects: any, projectPath: string): string {
     let name: string = '';
-
-    // console.log('Projects from name stuff', projects)
-
+    
     Object.entries(projects).forEach(([key, value]) => {
       let currentProjectPath: string = '';
 
@@ -268,17 +266,6 @@ export class ProjectsRepositoryImpl implements IProjectsRepository {
       const trimmedPath = OsUtils.parsePath(
         this.trimToRelativePath(projectPath).substring(1),
       );
-
-      console.log('Mrks ', this.workspacePath);
-      console.log(
-        'Testara ',
-        OsUtils.parsePath(projectPath).replace(this.workspacePath ?? '', ''),
-      );
-
-      console.log('Replaced ', projectPath);
-
-      console.log('Trimmed path ', trimmedPath);
-      console.log('Current project path ', currentProjectPath);
 
       if (currentProjectPath === trimmedPath) {
         name = key;
